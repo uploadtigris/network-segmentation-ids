@@ -9,6 +9,7 @@ A segmented home network. management, trusted, IoT, and quarantine zones enforce
 - Dell Latitude - Running Wazuh
 - MiniPC - Running PFSense
 - Wireless Access Point
+- Managed Switch
 
 ### Architecture
 
