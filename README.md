@@ -19,16 +19,35 @@ Suricata running inline on a segmented pfSense firewall with Wazuh ingesting ale
 
 ```mermaid
 graph TD
-  ISP["ISP traffic in<br/>Fiber Jack"] --> PF["pfSense mini PC, 2 NICs<br/>WAN + LAN, VLAN routing + ACLs<br/>+ inline Suricata = IPS"]
-  PF -->|"trunk, all VLANs tagged"| SW["Managed switch"]
-  SW -->|"physical: mirror port"| SURICATA["Suricata sensor<br/>promiscuous NIC, passive = IDS"]
-  SW --> WAZUH["Wazuh manager"]
-  SW --> PIHOLE["Pi-hole"]
-  SW --> AP["Wi-Fi access point<br/>trunk port, multi-SSID"]
-  AP --> SSID1["SSID: IoT &#8594; VLAN 30"]
-  AP --> SSID2["SSID: Trusted &#8594; VLAN 20"]
-  SURICATA -.->|"log data over the network, not a cable"| WAZUH
-  WAZUH -.->|"active response: reassign offending port's VLAN to 40"| SW
+  NET([Internet]) --> PF["pfSense firewall / router<br/>VLANs · ACLs · VPN"]
+  PF --> SW["Managed switch<br/>PoE · VLAN trunking · SPAN"]
+
+  SW --> PIHOLE["Pi-hole<br/>DNS filtering"]
+  SW --> L1
+  SW --> L2
+  SW --> AP["Wi-Fi AP<br/>Multi-SSID"]
+
+  AP --> VLAN20(["Trusted · VLAN 20"])
+  AP --> VLAN30(["IoT · VLAN 30"])
+
+  SW -. "mirror / SPAN" .-> SURICATA
+  SURICATA -- "alerts" --> WAZUH
+  WAZUH -. "active response:<br/>quarantine to VLAN 40" .-> SW
+
+  subgraph L1 ["Laptop 1 · Ubuntu + Docker · Security management"]
+    WAZUH["Wazuh<br/>SIEM ·<br/>log analysis"]
+  end
+
+  subgraph L2 ["Laptop 2 · Proxmox host"]
+    SURICATA["Suricata<br/>Network IDS"]
+    PROM["Prometheus<br/>Metrics collection"]
+    GRAF["Grafana<br/>Dashboards"]
+    PROM -- "queries" --> GRAF
+  end
+
+  PIHOLE ~~~ L1
+  L1 ~~~ L2
+  L2 ~~~ AP
 ```
 
 ### Alerting & Automation
