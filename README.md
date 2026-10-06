@@ -1,128 +1,107 @@
-# Segmented Network & Intrusion Detection Lab
+# Segmented Home Network (VLANs + pfSense)
 
-A home network rebuilt as a defended network: four security zones enforced
-with VLANs and firewall policy, watched by a passive Suricata sensor,
-correlated in Wazuh, with automated quarantine as the response path.
-Every boundary documents the threat it mitigates, and every key detection
-is proven against generated test traffic — not assumed.
+Segmenting my home network into five VLANs on a pfSense firewall, a managed
+switch and a Wi-Fi access point, with default-deny firewall policy between them.
+This is the flagship build of my [homelab](https://github.com/uploadtigris/my_home_lab)
+and the hands-on half of my Network+ / CCNA study.
 
-> Companion repos: [`wazuh-siem-homelab`](../wazuh-siem-homelab) (SIEM core)
-> · [`hardened-linux-image-pipeline`](../hardened-linux-image-pipeline)
-> (host hardening for the endpoints on this network)
+![in progress](https://img.shields.io/badge/status-in%20progress-F9A825) **Build: October 2026**
 
-## Zone model & threat boundaries
+Status means what it says: **running** is live today, **in progress** is being
+built this month, **planned** is designed but not started.
 
-| Zone | VLAN | Trust rationale | Boundary mitigates |
-|---|---|---|---|
-| Management | 10 | Admin interfaces only (pfSense, switch, Wazuh) | Credential theft pivoting to infrastructure control |
-| Trusted | 20 | Patched, Wazuh-agented endpoints | Blast radius of a compromised user device |
-| IoT | 30 | Unpatchable/low-trust devices | Lateral movement from compromised IoT firmware |
-| Quarantine | 40 | Default-deny; no east-west, no egress | Contains devices flagged by detection pipeline |
+> **First attempt, July 2026.** I created the VLANs on pfSense and the switch but
+> the build stalled when no DHCP leases appeared on the tagged interfaces
+> (write-up in [`notes/`](notes/)). That attempt used a `192.168.1.x` scheme and a
+> different VLAN layout. I'm rebuilding it from a written plan with the cleaner
+> `10.0.<VLAN>.0/24` addressing below — and the DHCP troubleshooting is part of the
+> story, not something I'm hiding.
 
-Inter-zone policy is default-deny on pfSense; each allowed flow is a
-documented exception in [`docs/segmentation-policy.md`](docs/segmentation-policy.md).
+---
 
-## Hardware
+## Gear
 
-- MiniPC — pfSense firewall/router (VLANs, ACLs, VPN)
-- Managed switch — VLAN trunking, PoE, SPAN mirror port
-- Dell Laptop (Ubuntu + Docker) — Wazuh manager
-- Dell Laptop (Proxmox) — Suricata sensor, Prometheus, Grafana
-- Raspberry Pi 2 Model B — Pi-hole DNS filtering
-- Wireless AP — multi-SSID, mapped to Trusted and IoT VLANs
+| Device | Role |
+|---|---|
+| Sharevdi mini PC running pfSense | Router, firewall, DHCP, inter-VLAN routing |
+| Netgear GS308EP (8-port PoE+ managed switch) | 802.1Q trunk + access ports, powers the AP |
+| TP-Link EAP610 | Wi-Fi access point, one SSID per VLAN (only the Guest SSID is live today) |
+| Raspberry Pi 2 Model B | Pi-hole DNS; moves into the Servers VLAN |
+| TechMojo 10" rack | Holds it all |
 
-## Architecture
+---
 
-Suricata runs as a **passive IDS** on a switch SPAN port — it sees
-inter-zone traffic without sitting inline. This is a deliberate tradeoff:
-passive deployment can't block in-line, but it can't drop legitimate
-traffic on a false positive or become a network single point of failure.
-Containment is instead handled downstream by Wazuh active response
-(see below), keeping detection and enforcement decoupled.
+## Zone model
+
+Five VLANs, each on `10.0.<VLAN>.0/24`, so a device's VLAN is readable from its IP.
+
+| VLAN | Name | Subnet | Who lives here | May reach |
+|---|---|---|---|---|
+| 1  | Mgmt    | 10.0.1.0/24  | Switch and AP management interfaces | Admin from Trusted only |
+| 20 | Trusted | 10.0.20.0/24 | My laptop, phone and PCs | Internet + Servers on named ports |
+| 30 | IoT     | 10.0.30.0/24 | Smart devices and the hydroponics project | DNS + internet only |
+| 40 | Guest   | 10.0.40.0/24 | Visitors | Internet only (client isolation) |
+| 50 | Servers | 10.0.50.0/24 | Pi-hole (10.0.50.10), Latitude server (10.0.50.20) | Reachable from Trusted on named ports |
+
+Inter-VLAN traffic is **default-deny** on pfSense. Every allowed flow is a written
+exception — for example, *"every VLAN may reach Pi-hole at 10.0.50.10 on port 53."*
+Guests get internet only, IoT can reach nothing but DNS, and the Servers VLAN is
+reachable from Trusted on named ports.
+
+---
+
+## Target design
+
+pfSense routes between VLANs over a single 802.1Q trunk to the switch
+(router-on-a-stick); the AP carries one SSID per VLAN on the same trunk.
 
 ```mermaid
 graph TD
-  NET([Internet]) --> PF["pfSense firewall / router<br/>VLANs · ACLs · VPN"]
-  PF --> SW["Managed switch<br/>PoE · VLAN trunking · SPAN"]
-  SW --> PIHOLE["Pi-hole<br/>DNS filtering"]
-  SW --> L1
-  SW --> L2
-  SW --> AP["Wi-Fi AP<br/>Multi-SSID"]
-  AP --> VLAN20(["Trusted · VLAN 20"])
-  AP --> VLAN30(["IoT · VLAN 30"])
-  SW -. "mirror / SPAN" .-> SURICATA
-  SURICATA -- "alerts (eve.json)" --> WAZUH
-  WAZUH -. "active response:<br/>quarantine to VLAN 40" .-> SW
-  subgraph L1 ["Laptop 1 · Ubuntu + Docker · Security management"]
-    WAZUH["Wazuh<br/>SIEM · log analysis"]
-  end
-  subgraph L2 ["Laptop 2 · Proxmox host"]
-    SURICATA["Suricata<br/>Network IDS"]
-    PROM["Prometheus<br/>Metrics collection"]
-    GRAF["Grafana<br/>Dashboards"]
-    PROM -- "queries" --> GRAF
-  end
-  PIHOLE ~~~ L1
-  L1 ~~~ L2
-  L2 ~~~ AP
+  NET([Internet]) --> PF["pfSense firewall / router<br/>inter-VLAN routing · DHCP · default-deny policy"]
+  PF -- "802.1Q trunk" --> SW["Netgear GS308EP<br/>VLAN trunk + access ports · PoE"]
+  SW -- "trunk" --> AP["TP-Link EAP610<br/>one SSID per VLAN"]
+  SW --> V1(["Mgmt · VLAN 1 · 10.0.1.0/24"])
+  SW --> SRV["Servers · VLAN 50 · 10.0.50.0/24<br/>Pi-hole 10.0.50.10 · Latitude 10.0.50.20"]
+  AP --> V20(["Trusted · VLAN 20"])
+  AP --> V30(["IoT · VLAN 30"])
+  AP --> V40(["Guest · VLAN 40"])
 ```
 
-## Detection → containment pipeline
+---
 
-1. **Detect:** Suricata inspects mirrored inter-zone traffic; detections
-   log to `eve.json`
-2. **Correlate:** a Wazuh agent ships `eve.json` to the Wazuh manager,
-   where correlation rules classify severity and select a response
-3. **Contain (active response):** for quarantine-worthy rules, an
-   active-response script calls the managed switch's API (SNMP write or
-   REST, depending on switch support) to reassign the offending device's
-   access port to VLAN 40. Same cable, different policy — isolation
-   without a physical change
-4. **Notify (always):** independent of containment, Wazuh raises a
-   dashboard alert and webhook/email notification so a human reviews
-   every auto-quarantine event
+## Status
 
-**Why notification is non-negotiable:** an active response with no
-accompanying alert can silently isolate a legitimate device on a false
-positive, with no visibility until connectivity breaks. The notification
-path is what keeps this a human-in-the-loop SOC workflow rather than
-blind automation.
+- [ ] VLANs 1 / 20 / 30 / 40 / 50 on pfSense with per-VLAN DHCP
+- [ ] Switch 802.1Q trunk and access ports (GS308EP)
+- [ ] One SSID per VLAN on the EAP610
+- [ ] Default-deny inter-VLAN rules with documented exceptions
+- [ ] Rule tests from IoT and Guest (nmap evidence, recorded)
+- [ ] Suricata sensor + Wazuh alerting (phase 2)
 
-**Fallback enforcement point:** if the switch doesn't expose a usable
-API for VLAN reassignment, the active response targets pfSense instead,
-blocking the device by IP/MAC at the firewall. Same containment outcome,
-different enforcement layer — documented in
-[`docs/active-response.md`](docs/active-response.md).
+When the build is done and the rules are tested, this README gets the real zone
+table, the switch port map, the firewall rule table (source, destination, port,
+why), screenshots, and a **"Problems I hit"** section — starting with how I fixed
+the July DHCP-lease failure.
 
-## Validation — detections are proven, not assumed
+---
 
-Key rules are exercised with generated test traffic (e.g., nmap scans
-from the IoT zone toward Management, EICAR-style transfer tests,
-policy-violating egress attempts). Each test case in
-[`docs/validation/`](docs/validation/) records: the traffic generated,
-the Suricata rule expected to fire, the actual alert output, and —
-for quarantine-class rules — evidence of the VLAN reassignment and the
-human-review notification.
+## Phase 2 — detection (planned)
 
-## Cloud mapping
+![planned](https://img.shields.io/badge/phase%202-planned-757575)
 
-The zone model here is deliberately the same design exercise as VPC
-segmentation: VLANs ↔ subnets/security groups, SPAN + Suricata ↔ VPC
-Flow Logs + GuardDuty, Wazuh active response ↔ EventBridge + Lambda
-auto-remediation. The writeup maps each on-prem boundary to its AWS
-equivalent so the two portfolios read as one defensive pattern applied
-at two layers.
+Once segmentation is built and tested, a Suricata sensor will watch inter-VLAN
+traffic and forward alerts to Wazuh for correlation with host logs. Neither is
+running yet — the SIEM itself is a separate rebuild
+([`wazuh-siem-homelab`](https://github.com/uploadtigris/wazuh-siem-homelab)).
+
+---
+
+## Related
+
+- [my_home_lab](https://github.com/uploadtigris/my_home_lab) — the gear and the wider roadmap
+- [sysadmin_handbook](https://github.com/uploadtigris/sysadmin_handbook) — troubleshooting write-ups
+- [wazuh-siem-homelab](https://github.com/uploadtigris/wazuh-siem-homelab) — the SIEM this feeds in phase 2
 
 ## Stack
 
-pfSense · VLANs · Suricata · Wazuh · Proxmox · Prometheus · Grafana ·
-Pi-hole · Docker
-
-## Status & roadmap
-
-- [x] VLAN segmentation and pfSense inter-zone policy
-- [x] Suricata sensor on SPAN mirror, alerts shipping to Wazuh
-- [ ] Active-response quarantine script (switch API path)
-- [ ] Fallback pfSense block path
-- [ ] Validation suite with captured evidence
-- [ ] Segmentation policy + threat-boundary writeup
+pfSense · 802.1Q VLANs · inter-VLAN routing · DHCP · firewall policy · Wi-Fi (multi-SSID) · PoE · Pi-hole · nmap
