@@ -17,7 +17,7 @@ built this month, **planned** is designed but not started.
 > `10.0.<VLAN>.0/24` addressing below — and the DHCP troubleshooting is part of the
 > story, not something I'm hiding.
 
-> [!CAUTION]
+> [!IMPORTANT]
 > The subnets and device IP addresses on this page are for demonstration only. They
 > are not the ones I actually use. I keep the real addressing out of this repo for
 > security reasons.
