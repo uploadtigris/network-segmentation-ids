@@ -1,9 +1,5 @@
 # Segmented Home Network (VLANs + pfSense)
 
-> **Note:** The subnets and device IP addresses on this page are for demonstration
-> only. They are not the ones I actually use. I keep the real addressing out of this
-> repo for security reasons.
-
 Segmenting my home network into five VLANs on a pfSense firewall, a managed
 switch and a Wi-Fi access point, with default-deny firewall policy between them.
 This is the flagship build of my [homelab](https://github.com/uploadtigris/my_home_lab)
@@ -20,6 +16,11 @@ built this month, **planned** is designed but not started.
 > different VLAN layout. I'm rebuilding it from a written plan with the cleaner
 > `10.0.<VLAN>.0/24` addressing below — and the DHCP troubleshooting is part of the
 > story, not something I'm hiding.
+
+> [!CAUTION]
+> The subnets and device IP addresses on this page are for demonstration only. They
+> are not the ones I actually use. I keep the real addressing out of this repo for
+> security reasons.
 
 ---
 

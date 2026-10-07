@@ -1,8 +1,9 @@
 # Segmentation Lab: Build Log
 
-> **Note:** The subnets and device IP addresses on this page are for demonstration
-> only. They are not the ones I actually use. I keep the real addressing out of this
-> repo for security reasons.
+> [!CAUTION]
+> The subnets and device IP addresses on this page are for demonstration only. They
+> are not the ones I actually use. I keep the real addressing out of this repo for
+> security reasons.
 
 **Date:** 2026-10-07 to 2026-10-__  
 **OS:** pfSense, Netgear GS308EP firmware, TP-Link EAP610 firmware, Raspberry Pi OS  
