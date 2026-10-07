@@ -1,5 +1,9 @@
 # Segmented Home Network (VLANs + pfSense)
 
+> **Note:** The subnets and device IP addresses on this page are for demonstration
+> only. They are not the ones I actually use. I keep the real addressing out of this
+> repo for security reasons.
+
 Segmenting my home network into five VLANs on a pfSense firewall, a managed
 switch and a Wi-Fi access point, with default-deny firewall policy between them.
 This is the flagship build of my [homelab](https://github.com/uploadtigris/my_home_lab)
@@ -96,6 +100,21 @@ Once segmentation is built and tested, a Suricata sensor will watch inter-VLAN
 traffic and forward alerts to Wazuh for correlation with host logs. Neither is
 running yet — the SIEM itself is a separate rebuild
 ([`wazuh-siem-homelab`](https://github.com/uploadtigris/wazuh-siem-homelab)).
+
+---
+
+## Images
+
+Diagrams and screenshots for this README go in [`images/`](images/). Real addresses,
+SSID names and MAC addresses are redacted before anything is added.
+
+To show one in this page:
+
+```markdown
+![Network diagram](images/network_diagram.png)
+```
+
+<!-- Add images below this line as they are captured -->
 
 ---
 
