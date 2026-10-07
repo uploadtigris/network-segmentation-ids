@@ -16,7 +16,7 @@ built this month, **planned** is designed but not started.
 
 > **First attempt, July 2026.** I created the VLANs on pfSense and the switch but
 > the build stalled when no DHCP leases appeared on the tagged interfaces
-> (write-up in [`notes/`](notes/)). That attempt used a `192.168.1.x` scheme and a
+> (notes in [`docs/archive-2026-07/`](docs/archive-2026-07/)). That attempt used a `192.168.1.x` scheme and a
 > different VLAN layout. I'm rebuilding it from a written plan with the cleaner
 > `10.0.<VLAN>.0/24` addressing below — and the DHCP troubleshooting is part of the
 > story, not something I'm hiding.
@@ -82,8 +82,8 @@ graph TD
 - [ ] Rule tests from IoT and Guest (nmap evidence, recorded)
 - [ ] Suricata sensor + Wazuh alerting (phase 2)
 
-The full step-by-step checklist and working log for the build lives in
-[`sysadmin_handbook/networking/Segmentation_Lab.md`](https://github.com/uploadtigris/sysadmin_handbook/blob/main/networking/Segmentation_Lab.md).
+The full step-by-step checklist and working log for the build is in
+[`docs/build-log.md`](docs/build-log.md).
 
 When the build is done and the rules are tested, this README gets the real zone
 table, the switch port map, the firewall rule table (source, destination, port,
@@ -100,6 +100,17 @@ Once segmentation is built and tested, a Suricata sensor will watch inter-VLAN
 traffic and forward alerts to Wazuh for correlation with host logs. Neither is
 running yet — the SIEM itself is a separate rebuild
 ([`wazuh-siem-homelab`](https://github.com/uploadtigris/wazuh-siem-homelab)).
+
+---
+
+## What's in this repo
+
+| Path | What it holds |
+|---|---|
+| `README.md` | The design: gear, zone model, target diagram, status |
+| [`docs/build-log.md`](docs/build-log.md) | Step-by-step checklist, test matrix and problems hit |
+| [`docs/archive-2026-07/`](docs/archive-2026-07/) | Notes from the first attempt in July 2026 (old layout, kept for the record) |
+| [`images/`](images/) | Diagrams and screenshots |
 
 ---
 
@@ -121,7 +132,6 @@ To show one in this page:
 ## Related
 
 - [my_home_lab](https://github.com/uploadtigris/my_home_lab) — the gear and the wider roadmap
-- [Segmentation lab build log](https://github.com/uploadtigris/sysadmin_handbook/blob/main/networking/Segmentation_Lab.md) — the step-by-step checklist, test matrix and STAR write-ups for this build
 - [sysadmin_handbook](https://github.com/uploadtigris/sysadmin_handbook) — troubleshooting write-ups
 - [wazuh-siem-homelab](https://github.com/uploadtigris/wazuh-siem-homelab) — the SIEM this feeds in phase 2
 
