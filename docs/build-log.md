@@ -290,9 +290,7 @@ _Fill in once the test matrix has been run._
 
 ## Problems I hit
 
-One STAR entry per problem. Copy the blank entry for each new one. When an entry is
-finished, it also goes into [sysadmin_handbook](https://github.com/uploadtigris/sysadmin_handbook/tree/main/networking)
-as its own page and gets linked from here.
+One STAR entry per problem. Copy the blank entry for each new one.
 
 ### Problem 1: No DHCP leases on the tagged interfaces (July 2026 attempt)
 

@@ -132,7 +132,6 @@ To show one in this page:
 ## Related
 
 - [my_home_lab](https://github.com/uploadtigris/my_home_lab) — the gear and the wider roadmap
-- [sysadmin_handbook](https://github.com/uploadtigris/sysadmin_handbook) — troubleshooting write-ups
 - [wazuh-siem-homelab](https://github.com/uploadtigris/wazuh-siem-homelab) — the SIEM this feeds in phase 2
 
 ## Stack
