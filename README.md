@@ -33,6 +33,13 @@ built this month, **planned** is designed but not started.
 | Raspberry Pi 2 Model B | Pi-hole DNS; moves into the Servers VLAN |
 | TechMojo 10" rack | Holds it all |
 
+**Switch port map.** Each port is colored by the VLAN it carries. Ports 1 and 2 are
+trunks; the rest are access ports in a single VLAN.
+
+<p align="center">
+  <img src="images/switch_port_map.png" alt="Switch port map: ports 1-2 trunks to pfSense and the access point, ports 3-4 Servers VLAN 50, ports 5-7 Trusted VLAN 20, port 8 Mgmt VLAN 1" width="800">
+</p>
+
 ---
 
 ## Zone model
@@ -57,18 +64,27 @@ reachable from Trusted on named ports.
 ## Target design
 
 pfSense routes between VLANs over a single 802.1Q trunk to the switch
-(router-on-a-stick); the AP carries one SSID per VLAN on the same trunk.
+(router-on-a-stick). A second trunk from the switch feeds the AP, which carries one
+SSID per VLAN. Wired devices sit on access ports in a single VLAN each.
 
 ```mermaid
 graph TD
-  NET([Internet]) --> PF["pfSense firewall / router<br/>inter-VLAN routing · DHCP · default-deny policy"]
-  PF -- "802.1Q trunk" --> SW["Netgear GS308EP<br/>VLAN trunk + access ports · PoE"]
-  SW -- "trunk" --> AP["TP-Link EAP610<br/>one SSID per VLAN"]
-  SW --> V1(["Mgmt · VLAN 1 · 10.0.1.0/24"])
-  SW --> SRV["Servers · VLAN 50 · 10.0.50.0/24<br/>Pi-hole 10.0.50.10 · Latitude 10.0.50.20"]
-  AP --> V20(["Trusted · VLAN 20"])
-  AP --> V30(["IoT · VLAN 30"])
-  AP --> V40(["Guest · VLAN 40"])
+  NET([Internet]) --> PF["pfSense firewall / router<br/>inter-VLAN routing · DHCP<br/>default-deny policy"]
+  PF -- "Port 1 · trunk<br/>untagged 1<br/>tagged 20, 30, 40, 50" --> SW["Netgear GS308EP<br/>8-port PoE+ managed switch"]
+  SW -- "Port 8 · access" --> MG["Mgmt · VLAN 1<br/>10.0.1.0/24<br/>switch .2 · AP .3 · recovery port"]
+  SW -- "Ports 3-4 · access" --> SRV["Servers · VLAN 50<br/>10.0.50.0/24<br/>Pi-hole .10 · Latitude .20"]
+  SW -- "Ports 5-7 · access" --> TW["Trusted (wired) · VLAN 20<br/>10.0.20.0/24<br/>Gaming PC · AI PC · spare"]
+  SW -- "Port 2 · trunk + PoE<br/>untagged 1<br/>tagged 20, 30, 40" --> AP["TP-Link EAP610<br/>one SSID per VLAN"]
+  AP -- "Home SSID" --> V20(["Trusted (Wi-Fi) · VLAN 20"])
+  AP -- "IoT SSID<br/>2.4 GHz only" --> V30(["IoT · VLAN 30<br/>10.0.30.0/24"])
+  AP -- "Guest SSID<br/>client isolation" --> V40(["Guest · VLAN 40<br/>10.0.40.0/24"])
+
+  classDef servers fill:#D55E00,stroke:#8a3d00,color:#ffffff
+  classDef trusted fill:#0072B2,stroke:#004a75,color:#ffffff
+  classDef mgmt fill:#00796B,stroke:#004d44,color:#ffffff
+  class SRV servers
+  class TW,V20 trusted
+  class MG mgmt
 ```
 
 ---
