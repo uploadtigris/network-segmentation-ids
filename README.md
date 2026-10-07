@@ -78,6 +78,9 @@ graph TD
 - [ ] Rule tests from IoT and Guest (nmap evidence, recorded)
 - [ ] Suricata sensor + Wazuh alerting (phase 2)
 
+The full step-by-step checklist and working log for the build lives in
+[`sysadmin_handbook/networking/Segmentation_Lab.md`](https://github.com/uploadtigris/sysadmin_handbook/blob/main/networking/Segmentation_Lab.md).
+
 When the build is done and the rules are tested, this README gets the real zone
 table, the switch port map, the firewall rule table (source, destination, port,
 why), screenshots, and a **"Problems I hit"** section — starting with how I fixed
@@ -99,6 +102,7 @@ running yet — the SIEM itself is a separate rebuild
 ## Related
 
 - [my_home_lab](https://github.com/uploadtigris/my_home_lab) — the gear and the wider roadmap
+- [Segmentation lab build log](https://github.com/uploadtigris/sysadmin_handbook/blob/main/networking/Segmentation_Lab.md) — the step-by-step checklist, test matrix and STAR write-ups for this build
 - [sysadmin_handbook](https://github.com/uploadtigris/sysadmin_handbook) — troubleshooting write-ups
 - [wazuh-siem-homelab](https://github.com/uploadtigris/wazuh-siem-homelab) — the SIEM this feeds in phase 2
 
