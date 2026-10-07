@@ -25,6 +25,10 @@ built this month, **planned** is designed but not started.
 
 ## Gear
 
+<p align="center">
+  <img src="images/homelab_rack.png" alt="My 10-inch rack: TP-Link access point on top, pfSense mini PC, Netgear PoE switch, patch panel and power strip" width="400">
+</p>
+
 | Device | Role |
 |---|---|
 | Sharevdi mini PC running pfSense | Router, firewall, DHCP, inter-VLAN routing |
@@ -35,10 +39,6 @@ built this month, **planned** is designed but not started.
 
 **Switch port map.** Each port is colored by the VLAN it carries. Ports 1 and 2 are
 trunks; the rest are access ports in a single VLAN.
-
-<p align="center">
-  <img src="images/switch_port_map.png" alt="Switch port map: ports 1-2 trunks to pfSense and the access point, ports 3-4 Servers VLAN 50, ports 5-7 Trusted VLAN 20, port 8 Mgmt VLAN 1" width="800">
-</p>
 
 ---
 
@@ -58,6 +58,10 @@ Inter-VLAN traffic is **default-deny** on pfSense. Every allowed flow is a writt
 exception — for example, *"every VLAN may reach Pi-hole at 10.0.50.10 on port 53."*
 Guests get internet only, IoT can reach nothing but DNS, and the Servers VLAN is
 reachable from Trusted on named ports.
+
+<p align="center">
+  <img src="images/switch_port_map.png" alt="Switch port map: ports 1-2 trunks to pfSense and the access point, ports 3-4 Servers VLAN 50, ports 5-7 Trusted VLAN 20, port 8 Mgmt VLAN 1" width="800">
+</p>
 
 ---
 
