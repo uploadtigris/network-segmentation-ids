@@ -3,7 +3,7 @@
 Segmenting my home network into five VLANs on a pfSense firewall, a managed
 switch and a Wi-Fi access point, with default-deny firewall policy between them.
 This is the flagship build of my [homelab](https://github.com/uploadtigris/my_home_lab)
-and the hands-on half of my Network+ / CCNA study.
+and the hands-on half of my CCNA study.
 
 ![in progress](https://img.shields.io/badge/status-in%20progress-F9A825) **Build: October 2026**
 
