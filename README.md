@@ -135,21 +135,6 @@ running yet — the SIEM itself is a separate rebuild
 
 ---
 
-## Images
-
-Diagrams and screenshots for this README go in [`images/`](images/). Real addresses,
-SSID names and MAC addresses are redacted before anything is added.
-
-To show one in this page:
-
-```markdown
-![Network diagram](images/network_diagram.png)
-```
-
-<!-- Add images below this line as they are captured -->
-
----
-
 ## Related
 
 - [my_home_lab](https://github.com/uploadtigris/my_home_lab) — the gear and the wider roadmap
