@@ -6,7 +6,7 @@
 > security reasons.
 
 **Date:** 2026-10-07 to 2026-10-09  
-**OS:** pfSense, Netgear GS308EP firmware, TP-Link EAP610 firmware, Raspberry Pi OS  
+**OS:** pfSense, Netgear GS308EP firmware, TP-Link EAP610 firmware, Linux Debian Trixie  
 **Environment:** Homelab  
 **Category:** Networking, VLANs, Firewall, DHCP, DNS  
 **Status:** Completed (phase 1). Step 6 (hydroponics to IoT) is deferred
