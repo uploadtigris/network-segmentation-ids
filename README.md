@@ -52,7 +52,7 @@ Five VLANs, each on `10.0.<VLAN>.0/24`, so a device's VLAN is readable from its 
 
 | VLAN | Name | Subnet | Who lives here | May reach |
 |---|---|---|---|---|
-| 1 | Mgmt | 10.0.1.0/24 | Switch, AP and firewall admin pages; wired recovery port (switch port 8); the Latitude for now | Everything. Admin pages are reachable only from the **wired Mgmt port**: Trusted Wi-Fi can't reach them, by design |
+| 1 | Mgmt | 10.0.1.0/24 | Switch, AP and firewall admin pages; wired recovery port (switch port 8); the Latitude 7490 for now | Everything. Admin pages are reachable only from the **wired Mgmt port**: Trusted Wi-Fi can't reach them, by design |
 | 20 | Trusted | 10.0.20.0/24 | My laptop, phone and PCs | DNS to Pi-hole and the internet. Blocked from the firewall and all internal networks. Same-VLAN traffic such as Moonlight and Wake-on-LAN works |
 | 30 | IoT | 10.0.30.0/24 | Smart devices, the hydroponics project (deferred) | DNS to Pi-hole and the internet only |
 | 40 | Guest | 10.0.40.0/24 | Visitors and work laptops | DNS from its own gateway and the internet only. Never touches Pi-hole |
@@ -93,7 +93,7 @@ Admin pages use HTTPS with certificates from a private CA (`homelab-ca`) on pfSe
 | pfSense, Pi-hole | HTTPS | `homelab-ca` | ✅ Done |
 | GS308EP switch | HTTP only | Not possible | ✅ Mitigated: wired Mgmt only |
 | EAP610 AP | HTTPS (vendor default) | Not trusted by design | ✅ Mitigated: wired Mgmt only |
-| Latitude (NextCloud) | n/a yet | Planned | Deferred |
+| Latitude 7490 (NextCloud) | n/a yet | Planned | Deferred |
 
 ---
 
@@ -165,7 +165,7 @@ Likelihood is my own estimate.
 ## Roadmap
 
 - Upgrade pfSense 2.8.1 to 2.9.0, and check the GS308EP firmware.
-- NextCloud on the Latitude 7490, moved to Servers (port 4), with its certificate and the server tests.
+- NextCloud and Home Assistant on the Latitude 7490, moved to Servers (port 4), with its certificate and the server tests.
 - Hydroponics onboarding to IoT ([step 6](docs/build-log.md#step-6)).
 - Detection: Wazuh on a Latitude 5420 (switch port 7, Servers VLAN, [`wazuh-siem-homelab`](https://github.com/uploadtigris/wazuh-siem-homelab)) with pfSense syslog, then Suricata.
 

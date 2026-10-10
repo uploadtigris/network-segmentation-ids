@@ -69,7 +69,7 @@ Why: so I'm not trained to click through certificate warnings on my own admin pa
 | Pi-hole | HTTPS (v6) | `pihole-gui`, signed by `homelab-ca` | ✅ Done |
 | GS308EP switch | HTTP only | Not possible: no HTTPS | ✅ Mitigated: reachable only from wired Mgmt (step 5) |
 | EAP610 AP | HTTPS (vendor default) | Not trusted by design ([Problem 5](#problem-5)) | ✅ Mitigated: reachable only from wired Mgmt (step 5) |
-| Latitude (NextCloud) | n/a yet | **Deferred** until NextCloud is set up | |
+| Latitude 7490 (NextCloud) | n/a yet | **Deferred** until NextCloud is set up | |
 
 - The CA is `homelab-ca` in pfSense (the certificate's CN is `internal-ca`), and its private key never leaves pfSense.
 - `pfsense-gui`: RSA 2048, SHA256, 398 days (well inside Apple's 825-day limit for private CAs), with SANs for `pfsense.home.arpa` and the Mgmt IP, set under System > Advanced > Admin Access.
@@ -116,7 +116,7 @@ _Decision: LAN is kept as Mgmt rather than re-addressed. In the demo scheme it i
 - ✅ VLANs 20, 30, 40 and 50 on the LAN NIC (igc2), each added as an interface named TRUSTED / IOT / GUEST / SERVERS, with a static 10.0.X.1/24 and the upstream gateway left as None so pfSense doesn't treat them as WANs
 - ✅ DHCP on each VLAN, range .100 to .199. DNS is 10.0.50.10 (Pi-hole) on Trusted, IoT and Servers, and 10.0.40.1 (pfSense) on Guest, so guests never need to reach an internal server
 - ✅ Reservations for the NAS and the AP, and a static address on the switch. The Pi-hole's address is set on the host itself (step 4)
-- **Deferred:** the Latitude's Servers address (10.0.50.20) is set when it moves to Servers (see step 2, port 4)
+- **Deferred:** the Latitude 7490's Servers address (10.0.50.20) is set when it moves to Servers (see step 2, port 4)
 
 ```
 pfSense CE 2.8.1 uses the Kea DHCP backend. The general DHCP settings (DNS registration, high
@@ -274,7 +274,7 @@ _SERVERS: the blocks sit above the Pi-hole pass rule, so they match first ([Prob
 
 ![Switch per-port VLANs: ports 5 and 6 are PVID 20 and members of VLAN 20 only](../images/05_switch_pcs_vlan20_annotated.png)
 
-_Per-port VLANs at the end of step 5: port 3 (Pi-hole) is PVID 50, ports 5 and 6 (gaming PC, workstation) and spare port 7 are PVID 20, and port 4 (Latitude) stays PVID 1 until it moves._
+_Per-port VLANs at the end of step 5: port 3 (Pi-hole) is PVID 50, ports 5 and 6 (gaming PC, workstation) and spare port 7 are PVID 20, and port 4 (Latitude 7490) stays PVID 1 until it moves._
 
 ![AP SSID list with only Home on both bands, IoT and Guest remaining, with their VLAN IDs](../images/05_ap_old_ssids_retired_annotated.png)
 
@@ -307,7 +307,7 @@ I ran every test from the restricted side on 2026-10-09, and all 10 passed.
 | 9 | Servers (from the Pi-hole) | HTTPS and DNS out, ICMP out, and the PC and the switch | HTTPS and DNS out worked. ICMP out was blocked by design, because the pass rule is TCP/UDP only. The PC and the switch were unreachable | PASS (2026-10-09) |
 | 10 | The handheld on the Home SSID | Moonlight Wake-on-LAN, then a stream from the gaming PC | The PC woke and the stream started. This passed after the fix in [Problem 13](#problem-13) | PASS (2026-10-09) |
 
-_The Trusted-to-NextCloud and IoT-to-NextCloud tests wait for the Latitude to move to Servers. I did not record a separate "each VLAN hands out its own address" test; the leases from steps 2 and 3 are the evidence for that._
+_The Trusted-to-NextCloud and IoT-to-NextCloud tests wait for the Latitude 7490 to move to Servers. I did not record a separate "each VLAN hands out its own address" test; the leases from steps 2 and 3 are the evidence for that._
 
 ## Result
 
