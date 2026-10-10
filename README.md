@@ -56,12 +56,12 @@ Five VLANs, each on `10.0.<VLAN>.0/24`, so a device's VLAN is readable from its 
 | 20 | Trusted | 10.0.20.0/24 | My laptop, phone and PCs | DNS to Pi-hole and the internet. Blocked from the firewall and all internal networks. Same-VLAN traffic such as Moonlight and Wake-on-LAN works |
 | 30 | IoT | 10.0.30.0/24 | Smart devices, the hydroponics project (deferred) | DNS to Pi-hole and the internet only |
 | 40 | Guest | 10.0.40.0/24 | Visitors and work laptops | DNS from its own gateway and the internet only. Never touches Pi-hole |
-| 50 | Servers | 10.0.50.0/24 | Pi-hole (.10); the Latitude (.20, planned) | Pi-hole reaches the internet on 53, 80, 123 and 443 only. Servers can't start connections into other VLANs; DNS replies still flow because the firewall is stateful |
+| 50 | Servers | 10.0.50.0/24 | Pi-hole (.10); the Latitude 7490 (.20, planned); the Wazuh server, a Latitude 5420 (.30, planned) | Pi-hole reaches the internet on 53, 80, 123 and 443 only. Servers can't start connections into other VLANs; DNS replies still flow because the firewall is stateful |
 
-The Latitude stays on Mgmt until NextCloud is set up, then moves to Servers (switch port 4).
+The Latitude 7490 stays on Mgmt until NextCloud is set up, then moves to Servers (switch port 4). A second laptop, a Latitude 5420, will run Wazuh on switch port 7, the spare Trusted port today, also in Servers.
 
 <p align="center">
-  <img src="images/switch_port_map.png" alt="Switch port map: ports 1-2 trunks to pfSense and the access point, ports 3-4 Servers VLAN 50, ports 5-7 Trusted VLAN 20, port 8 Mgmt VLAN 1" width="800">
+  <img src="images/switch_port_map.png" alt="Switch port map: ports 1-2 trunks to pfSense and the access point, ports 3, 4 and 7 Servers VLAN 50 (port 7 planned), ports 5-6 Trusted VLAN 20, port 8 Mgmt VLAN 1" width="800">
 </p>
 
 ### Firewall rules
@@ -106,8 +106,8 @@ graph TD
   NET([Internet]) --> PF["pfSense firewall / router<br/>inter-VLAN routing · DHCP<br/>least-privilege rules"]
   PF -- "Port 1 · trunk<br/>untagged 1<br/>tagged 20, 30, 40, 50" --> SW["Netgear GS308EP<br/>8-port PoE+ managed switch"]
   SW -- "Port 8 · access" --> MG["Mgmt · VLAN 1<br/>10.0.1.0/24<br/>switch .2 · AP .3 · wired recovery port"]
-  SW -- "Ports 3-4 · access" --> SRV["Servers · VLAN 50<br/>10.0.50.0/24<br/>Pi-hole .10 · Latitude .20 (planned)"]
-  SW -- "Ports 5-7 · access" --> TW["Trusted (wired) · VLAN 20<br/>10.0.20.0/24<br/>Gaming PC · workstation · spare"]
+  SW -- "Ports 3, 4, 7 · access" --> SRV["Servers · VLAN 50<br/>10.0.50.0/24<br/>Pi-hole .10 · Latitude 7490 .20 (planned)<br/>Wazuh (Latitude 5420) .30 (planned)"]
+  SW -- "Ports 5-6 · access" --> TW["Trusted (wired) · VLAN 20<br/>10.0.20.0/24<br/>Gaming PC · workstation"]
   SW -- "Port 2 · trunk + PoE<br/>untagged 1<br/>tagged 20, 30, 40" --> AP["TP-Link EAP610<br/>one SSID per VLAN"]
   AP -- "Home SSID<br/>2.4 + 5 GHz" --> V20(["Trusted (Wi-Fi) · VLAN 20"])
   AP -- "IoT SSID<br/>2.4 GHz only" --> V30(["IoT · VLAN 30<br/>10.0.30.0/24"])
@@ -138,7 +138,7 @@ graph LR
 
 - **VLAN ID matches the third octet.** A device's VLAN reads from its IP. Trade-off: renumbering means re-addressing.
 - **Mgmt on the existing untagged LAN (VLAN 1), admin from the wired port only.** I kept my LAN as Mgmt, and believe Netgear Plus switches only serve their UI on VLAN 1 (not independently confirmed). Trade-off: no admin from Trusted Wi-Fi, so I use a cable.
-- **Separate Servers VLAN.** Pi-hole and the Latitude (planned) sit apart, and IoT can't reach them. Trade-off: more rules to write and test.
+- **Separate Servers VLAN.** Pi-hole and the Latitudes (planned) sit apart, and IoT can't reach them. Trade-off: more rules to write and test.
 - **Guest DNS from its own gateway, never Pi-hole.** Guests get no path into Servers, even for DNS. Trade-off: no Pi-hole filtering for guests.
 - **Block DNS bypass (ports 53 and 853) instead of a NAT redirect.** A block is explicit and shows up in tests, while a redirect hides misbehaving devices. Trade-off: a hardcoded resolver breaks instead of being silently fixed.
 - **Work laptops on Guest.** Employer-managed devices are untrusted at home. Trade-off: they can't reach my devices.
@@ -165,9 +165,9 @@ Likelihood is my own estimate.
 ## Roadmap
 
 - Upgrade pfSense 2.8.1 to 2.9.0, and check the GS308EP firmware.
-- NextCloud on the Latitude, moved to Servers (port 4), with its certificate and the server tests.
+- NextCloud on the Latitude 7490, moved to Servers (port 4), with its certificate and the server tests.
 - Hydroponics onboarding to IoT ([step 6](docs/build-log.md#step-6)).
-- Detection: pfSense syslog into Wazuh ([`wazuh-siem-homelab`](https://github.com/uploadtigris/wazuh-siem-homelab)), then Suricata.
+- Detection: Wazuh on a Latitude 5420 (switch port 7, Servers VLAN, [`wazuh-siem-homelab`](https://github.com/uploadtigris/wazuh-siem-homelab)) with pfSense syslog, then Suricata.
 
 ## Related
 

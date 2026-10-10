@@ -30,7 +30,7 @@ Segment the home network into five VLANs with default-deny rules between them, a
 | 20 | Trusted | 10.0.20.0/24 | 10.0.20.1 | Laptop, phone, PCs |
 | 30 | IoT | 10.0.30.0/24 | 10.0.30.1 | Smart devices, hydroponics project |
 | 40 | Guest | 10.0.40.0/24 | 10.0.40.1 | Visitors |
-| 50 | Servers | 10.0.50.0/24 | 10.0.50.1 | Pi-hole (10.0.50.10), Latitude (10.0.50.20) |
+| 50 | Servers | 10.0.50.0/24 | 10.0.50.1 | Pi-hole (10.0.50.10), Latitude 7490 (10.0.50.20, planned), Wazuh server on a Latitude 5420 (10.0.50.30, planned) |
 
 ## Action
 
@@ -139,7 +139,7 @@ _Interfaces > Interface Assignments: each VLAN is its own interface. MAC address
 _Decision: ports 3 to 6 kept VLAN 1 until their steps. Moving the Pi-hole (port 3) before step 4 would break DNS for the whole network, and moving the PCs (ports 5 and 6) before step 5 would leave them with no internet. I configured the trunk (port 1) and the AP (port 2) first, and used spare port 7 on VLAN 20 to prove the trunk works._
 
 <p align="center">
-  <img src="../images/switch_port_map.png" alt="Switch port map: ports 1-2 trunks to pfSense and the access point, ports 3-4 Servers VLAN 50, ports 5-7 Trusted VLAN 20, port 8 Mgmt VLAN 1" width="800">
+  <img src="../images/switch_port_map.png" alt="Switch port map: ports 1-2 trunks to pfSense and the access point, ports 3, 4 and 7 Servers VLAN 50 (port 7 planned), ports 5-6 Trusted VLAN 20, port 8 Mgmt VLAN 1" width="800">
 </p>
 
 | Port | Device | Untagged (PVID) | Tagged |
@@ -150,14 +150,15 @@ _Decision: ports 3 to 6 kept VLAN 1 until their steps. Moving the Pi-hole (port 
 | 4 | Latitude 7490 | 50 | none |
 | 5 | Gaming PC | 20 | none |
 | 6 | Workstation | 20 | none |
-| 7 | Spare (Trusted) | 20 | none |
+| 7 | Spare (Trusted). Planned: Wazuh server (Latitude 5420) | 20 now, 50 planned | none |
 | 8 | Recovery port (Mgmt) | 1 | none |
 
 - ✅ Advanced 802.1Q enabled, VLANs 20, 30, 40, 50 created and named, and every port labeled to match the map (labels are cosmetic)
 - ✅ Port 1 tagged on 20, 30, 40, 50. Port 2 tagged on 20, 30, 40. Ports 1, 2 and 8 stay untagged in VLAN 1
 - ✅ Port 7: untagged on VLAN 20, PVID 20, removed from VLAN 1. Port 3 moved in step 4, and ports 5 and 6 in step 5
 - ✅ Switch given a static address (10.0.1.2), and its UI confirmed reachable from port 8, the way back in
-- **Deferred:** port 4 (Latitude): PVID 50, VLAN 50, removed from VLAN 1. It moves when NextCloud is set up
+- **Deferred:** port 4 (Latitude 7490): PVID 50, VLAN 50, removed from VLAN 1. It moves when NextCloud is set up
+- **Deferred:** port 7 (Latitude 5420, the Wazuh server): PVID 50, VLAN 50, removed from VLAN 1. It is the Trusted spare until the Wazuh rebuild, and the Servers rules need one more pass rule for it first (see the [Wazuh build log](https://github.com/uploadtigris/wazuh-siem-homelab/blob/main/docs/build-log.md))
 
 ```
 On this switch's new UI, marking a port U in a VLAN automatically set its PVID, but the port stayed a
